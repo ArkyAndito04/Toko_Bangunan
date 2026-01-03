@@ -28,9 +28,11 @@ SET time_zone = "+00:00";
 --
 
 CREATE TABLE `admin` (
-  `id_admin` int(11) NOT NULL,
-  `username` varchar(50) DEFAULT NULL,
-  `password` varchar(255) DEFAULT NULL
+  `id_admin` int(11) NOT NULL AUTO_INCREMENT,
+  `username` varchar(50) NOT NULL DEFAULT '',
+  `password` varchar(255) NOT NULL,
+  PRIMARY KEY (`id_admin`),
+  UNIQUE KEY `username` (`username`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -47,11 +49,16 @@ INSERT INTO `admin` (`id_admin`, `username`, `password`) VALUES
 --
 
 CREATE TABLE `detail_pesanan` (
-  `id_detail` int(11) NOT NULL,
-  `id_pesanan` int(11) DEFAULT NULL,
-  `id_produk` int(11) DEFAULT NULL,
-  `jumlah` int(11) DEFAULT NULL,
-  `harga_satuan` int(11) DEFAULT NULL
+  `id_detail` int(11) NOT NULL AUTO_INCREMENT,
+  `id_pesanan` int(11) NOT NULL DEFAULT 0,
+  `id_produk` int(11) NOT NULL DEFAULT 0,
+  `jumlah` int(11) NOT NULL DEFAULT 0,
+  `harga_satuan` int(11) NOT NULL DEFAULT 0,
+  PRIMARY KEY (`id_detail`),
+  KEY `id_pesanan` (`id_pesanan`),
+  KEY `id_produk` (`id_produk`),
+  CONSTRAINT `detail_pesanan_ibfk_1` FOREIGN KEY (`id_pesanan`) REFERENCES `pesanan` (`id_pesanan`) ON DELETE CASCADE,
+  CONSTRAINT `detail_pesanan_ibfk_2` FOREIGN KEY (`id_produk`) REFERENCES `produk` (`id_produk`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -61,14 +68,14 @@ CREATE TABLE `detail_pesanan` (
 --
 
 CREATE TABLE `pelanggan` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,  -- Tambahkan AUTO_INCREMENT di sini
-  `nama_lengkap` varchar(100) DEFAULT NULL,
-  `nomor_hp` varchar(15) DEFAULT NULL,
-  `alamat` text DEFAULT NULL,
-  `password` varchar(255) DEFAULT NULL,
-  PRIMARY KEY (`id`),                   -- Pastikan ini ada di sini
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `nama_lengkap` varchar(100) NOT NULL DEFAULT '',
+  `nomor_hp` varchar(15) NOT NULL DEFAULT '',
+  `alamat` text NOT NULL DEFAULT '',
+  `password` varchar(255) NOT NULL,
+  PRIMARY KEY (`id`),
   UNIQUE KEY `nomor_hp` (`nomor_hp`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `pelanggan`
@@ -84,12 +91,15 @@ INSERT INTO `pelanggan` (`id`, `nama_lengkap`, `nomor_hp`, `alamat`, `password`)
 --
 
 CREATE TABLE `pesanan` (
-  `id_pesanan` int(11) NOT NULL,
-  `id_pelanggan` int(11) DEFAULT NULL,
-  `total_bayar` int(11) DEFAULT NULL,
-  `status` varchar(50) DEFAULT 'Diproses',
-  `notif_viewed` tinyint(1) DEFAULT 0,
-  `tanggal_pesanan` timestamp NOT NULL DEFAULT current_timestamp()
+  `id_pesanan` int(11) NOT NULL AUTO_INCREMENT,
+  `id_pelanggan` int(11) NOT NULL DEFAULT 0,
+  `total_bayar` int(11) NOT NULL DEFAULT 0,
+  `status` varchar(50) NOT NULL DEFAULT 'Diproses',
+  `notif_viewed` tinyint(1) NOT NULL DEFAULT 0,
+  `tanggal_pesanan` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id_pesanan`),
+  KEY `id_pelanggan` (`id_pelanggan`),
+  CONSTRAINT `pesanan_ibfk_1` FOREIGN KEY (`id_pelanggan`) REFERENCES `pelanggan` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -99,12 +109,13 @@ CREATE TABLE `pesanan` (
 --
 
 CREATE TABLE `produk` (
-  `id_produk` int(11) NOT NULL,
-  `nama_produk` varchar(100) DEFAULT NULL,
-  `harga` int(11) DEFAULT NULL,
-  `stok` int(11) DEFAULT NULL,
-  `gambar` varchar(255) DEFAULT 'default.jpg',
-  `status` varchar(20) DEFAULT 'aktif'
+  `id_produk` int(11) NOT NULL AUTO_INCREMENT,
+  `nama_produk` varchar(100) NOT NULL DEFAULT '',
+  `harga` int(11) NOT NULL DEFAULT 0,
+  `stok` int(11) NOT NULL DEFAULT 0,
+  `gambar` varchar(255) NOT NULL DEFAULT 'default.jpg',
+  `status` varchar(20) NOT NULL DEFAULT 'aktif',
+  PRIMARY KEY (`id_produk`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
