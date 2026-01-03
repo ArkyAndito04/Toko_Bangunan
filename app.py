@@ -39,7 +39,15 @@ def is_logged_in():
     return 'user_id' in session
 
 # --- ROUTE PELANGGAN ---
-
+@app.route('/debug-session')
+def debug_session():
+    return {
+        "session_data": dict(session),
+        "is_logged_in": 'user_id' in session,
+        "cookie_name": app.config['SESSION_COOKIE_NAME'],
+        "permanent": session.permanent
+    }
+    
 @app.route('/')
 def index():
     cur = mysql.connection.cursor()
@@ -434,3 +442,4 @@ def logout():
 
 if __name__ == '__main__':
     app.run(debug=True)
+
