@@ -56,8 +56,14 @@ def login_pelanggan():
         cur.close()
 
         if user and check_password_hash(user['password'], pw):
+            # Aktifkan session permanent
+            session.permanent = True 
             session['user_id'] = user['id']
             session['user_name'] = user['nama_lengkap']
+            
+            # Opsional: Memaksa session tersimpan sebelum redirect
+            session.modified = True 
+            
             return redirect(url_for('index'))
         else:
             flash("Nomor HP atau Password salah!", "danger")
@@ -442,5 +448,6 @@ def logout():
 if __name__ == '__main__':
 
     app.run(debug=True)
+
 
 
