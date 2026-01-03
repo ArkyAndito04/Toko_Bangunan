@@ -132,9 +132,23 @@
         }
         .product-card:hover { transform: translateY(-5px); box-shadow: 0 8px 15px rgba(0,0,0,0.15); }
         .product-card img { width: 100%; height: 180px; object-fit: cover; border-radius: 8px; margin-bottom: 15px; }
-        .product-card h3 { margin: 10px 0; font-size: 1.1rem; color: var(--primary); height: 2.4em; overflow: hidden; }
+        
+        /* --- PERBAIKAN NAMA PRODUK AGAR JELAS --- */
+        .product-card h3 { 
+            margin: 10px 0; 
+            font-size: 1.15rem; 
+            color: var(--primary); 
+            height: auto; 
+            min-height: 2.8em; 
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1.3;
+            overflow: visible;
+        }
 
-        .price { font-size: 1.2rem; color: var(--success); font-weight: bold; margin: 10px 0; }
+        .price { font-size: 1.3rem; color: var(--success); font-weight: 800; margin: 5px 0; }
+        
         .btn-add {
             background-color: var(--accent); color: white; border: none; padding: 10px 20px;
             border-radius: 8px; cursor: pointer; width: 100%; font-weight: bold;
@@ -231,18 +245,13 @@
             }
         }
 
-        // Fungsi Toast Global untuk JS
-        // Fungsi Toast Global untuk JS
         function showToast(message, type = "success") {
-            // Hapus toast lama jika ada agar tidak menumpuk di layar
             const oldToast = document.querySelector('.toast-notif');
             if (oldToast) oldToast.remove();
 
             const toast = document.createElement('div');
-            // Jika type danger, kita berikan background merah (bisa ditambahkan di CSS)
             toast.className = `toast-notif ${type}`;
             
-            // Pilih icon berdasarkan tipe
             const icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
             const color = type === 'danger' ? 'background-color: #e74c3c;' : '';
 
