@@ -79,8 +79,7 @@ CREATE TABLE `pelanggan` (
 
 --
 -- Dumping data for table `pelanggan`
--- --------------------------------------------------------
-
+--
 --
 -- Table structure for table `pesanan`
 --
