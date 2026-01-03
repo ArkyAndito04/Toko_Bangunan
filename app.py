@@ -6,6 +6,11 @@ import os
 
 app = Flask(__name__)
 app.secret_key = 'maju_jaya_key'
+app.config.update(
+    SESSION_COOKIE_SECURE=True,    # Wajib jika menggunakan HTTPS (Azure)
+    SESSION_COOKIE_HTTPONLY=True,  # Keamanan tambahan
+    SESSION_COOKIE_SAMESITE='Lax', # Mencegah masalah pengiriman cookie antar route
+)
 
 # --- KONFIGURASI DATABASE ---
 app.config['MYSQL_HOST'] = 'tokobangunan.mysql.database.azure.com'
@@ -437,4 +442,5 @@ def logout():
 if __name__ == '__main__':
 
     app.run(debug=True)
+
 
