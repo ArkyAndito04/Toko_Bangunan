@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, session, jsonify, flash
 from flask_mysqldb import MySQL
 from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.middleware.proxy_fix import ProxyFix
 from werkzeug.utils import secure_filename
 import os
 from datetime import timedelta
@@ -443,5 +444,6 @@ def logout():
 
 if __name__ == '__main__':
     app.run(debug=True)
+
 
 
