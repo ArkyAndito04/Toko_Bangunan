@@ -3,13 +3,17 @@ from flask_mysqldb import MySQL
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 import os
+from datetime import timedelta
 
 app = Flask(__name__)
 app.secret_key = 'maju_jaya_key'
+
+# --- PERBAIKAN KONFIGURASI SESSION UNTUK AZURE ---
 app.config.update(
-    SESSION_COOKIE_SECURE=True,    # Wajib jika menggunakan HTTPS (Azure)
-    SESSION_COOKIE_HTTPONLY=True,  # Keamanan tambahan
-    SESSION_COOKIE_SAMESITE='Lax', # Mencegah masalah pengiriman cookie antar route
+    SESSION_COOKIE_SECURE=True,    
+    SESSION_COOKIE_HTTPONLY=True,  
+    SESSION_COOKIE_SAMESITE='Lax',
+    PERMANENT_SESSION_LIFETIME=timedelta(minutes=60) # Session bertahan 60 menit
 )
 
 # --- KONFIGURASI DATABASE ---
@@ -39,7 +43,6 @@ def is_logged_in():
 @app.route('/')
 def index():
     cur = mysql.connection.cursor()
-    # Hanya ambil produk yang statusnya aktif
     cur.execute("SELECT * FROM produk WHERE status = 'aktif'")
     produk = cur.fetchall()
     cur.close()
@@ -56,12 +59,12 @@ def login_pelanggan():
         cur.close()
 
         if user and check_password_hash(user['password'], pw):
-            # Aktifkan session permanent
+            # PERBAIKAN: Aktifkan session permanent agar tidak logout sendiri
             session.permanent = True 
             session['user_id'] = user['id']
             session['user_name'] = user['nama_lengkap']
             
-            # Opsional: Memaksa session tersimpan sebelum redirect
+            # Memaksa session tersimpan sebelum redirect
             session.modified = True 
             
             return redirect(url_for('index'))
@@ -196,7 +199,6 @@ def profil():
         return redirect(url_for('login_pelanggan'))
     
     cur = mysql.connection.cursor()
-    # Pastikan nama kolom 'id' sesuai dengan tabel pelanggan Anda
     cur.execute("SELECT id, nama_lengkap, nomor_hp, alamat FROM pelanggan WHERE id = %s", [session['user_id']])
     user = cur.fetchone()
     cur.close()
@@ -212,7 +214,6 @@ def update_profil():
     if not is_logged_in():
         return redirect(url_for('login_pelanggan'))
 
-    # Ambil data dari form profil.html
     nama = request.form.get('nama')
     hp = request.form.get('hp')
     alamat = request.form.get('alamat')
@@ -223,7 +224,6 @@ def update_profil():
     
     try:
         if password_baru and password_baru.strip() != "":
-            # Jika user mengisi password baru, lakukan hashing
             hashed_pw = generate_password_hash(password_baru)
             cur.execute("""
                 UPDATE pelanggan 
@@ -231,7 +231,6 @@ def update_profil():
                 WHERE id = %s
             """, (nama, hp, alamat, hashed_pw, user_id))
         else:
-            # Jika password dikosongkan, update data profil saja
             cur.execute("""
                 UPDATE pelanggan 
                 SET nama_lengkap = %s, nomor_hp = %s, alamat = %s 
@@ -239,10 +238,7 @@ def update_profil():
             """, (nama, hp, alamat, user_id))
         
         mysql.connection.commit()
-        
-        # Update session agar nama di header berubah seketika
         session['user_name'] = nama
-        
         flash("Profil berhasil diperbarui!", "success")
     except Exception as e:
         mysql.connection.rollback()
@@ -252,20 +248,16 @@ def update_profil():
 
     return redirect(url_for('profil'))
 
-# --- ROUTE LUPA PASSWORD ---
-
 @app.route('/lupa-password', methods=['GET', 'POST'])
 def lupa_password():
     if request.method == 'POST':
         query = request.form['search_query']
         cur = mysql.connection.cursor()
-        # Mencari berdasarkan nama atau nomor hp
         cur.execute("SELECT id FROM pelanggan WHERE nama_lengkap = %s OR nomor_hp = %s", (query, query))
         user = cur.fetchone()
         cur.close()
 
         if user:
-            # Jika ketemu, arahkan ke halaman reset dengan membawa ID user
             return redirect(url_for('reset_password', user_id=user['id']))
         else:
             flash("Akun tidak ditemukan. Pastikan Nama atau Nomor HP benar.")
@@ -288,8 +280,6 @@ def reset_password(user_id):
 
     return render_template('reset_password.html', user_id=user_id)
 
-# --- ROUTE ADMIN ---
-
 @app.route('/admin/login', methods=['GET', 'POST'])
 def login_admin():
     if request.method == 'POST':
@@ -301,6 +291,7 @@ def login_admin():
         cur.close()
 
         if adm and check_password_hash(adm['password'], pw):
+            session.permanent = True
             session['admin_ok'] = True
             return redirect(url_for('admin'))
         else:
@@ -322,14 +313,12 @@ def admin():
     
     return render_template('admin.html', orders=orders, graph_data=graph_data)
 
-# FITUR LIHAT DETAIL PESANAN (SISI ADMIN)
 @app.route('/admin/detail_pesanan/<int:id>')
 def lihat_detail_admin(id):
     if not is_admin():
         return redirect(url_for('login_admin'))
     
     cur = mysql.connection.cursor()
-    # Mengambil data pesanan beserta info lengkap pelanggan (nama, hp, alamat)
     cur.execute("""
         SELECT p.*, c.nama_lengkap, c.nomor_hp, c.alamat 
         FROM pesanan p 
@@ -338,7 +327,6 @@ def lihat_detail_admin(id):
     """, [id])
     pesanan = cur.fetchone()
     
-    # Mengambil rincian produk yang dipesan
     cur.execute("""
         SELECT d.*, pr.nama_produk 
         FROM detail_pesanan d 
@@ -375,10 +363,9 @@ def update_status_selesai(id):
     cur.execute("UPDATE pesanan SET status = 'Selesai' WHERE id_pesanan = %s", [id])
     mysql.connection.commit()
     cur.close()
-    # Redirect kembali ke detail agar admin bisa langsung cetak invoice terbaru
     return redirect(url_for('lihat_detail_admin', id=id))
 
-# ROUTE TAMBAHAN UNTUK MANAJEMEN PRODUK (ADMIN)
+# --- PERBAIKAN: Pastikan template dipanggil sesuai nama file fisik ---
 @app.route('/admin/produk')
 def kelola_produk():
     if not is_admin():
@@ -387,6 +374,7 @@ def kelola_produk():
     cur.execute("SELECT * FROM produk")
     produk = cur.fetchall()
     cur.close()
+    # Pastikan file Kelola_Produk.html ada di folder templates
     return render_template('kelola_produk.html', produk=produk)
 
 @app.route('/tambah_produk', methods=['POST'])
@@ -423,7 +411,6 @@ def update_stok(id):
 def hapus_produk(id):
     if not is_admin(): return redirect(url_for('login_admin'))
     cur = mysql.connection.cursor()
-    # Mengubah status daripada menghapus barisnya
     cur.execute("UPDATE produk SET status = 'dihapus' WHERE id_produk = %s", [id])
     mysql.connection.commit()
     cur.close()
@@ -446,8 +433,4 @@ def logout():
     return redirect(url_for('index'))
 
 if __name__ == '__main__':
-
     app.run(debug=True)
-
-
-
