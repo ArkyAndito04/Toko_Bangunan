@@ -68,6 +68,15 @@ CREATE TABLE `pesanan` (
 --
 -- Table structure for table `detail_pesanan`
 --
+CREATE TABLE `produk` (
+  `id_produk` int(11) NOT NULL AUTO_INCREMENT,
+  `nama_produk` varchar(100) NOT NULL DEFAULT '',
+  `harga` int(11) NOT NULL DEFAULT 0,
+  `stok` int(11) NOT NULL DEFAULT 0,
+  `gambar` varchar(255) NOT NULL DEFAULT 'default.jpg',
+  `status` varchar(20) NOT NULL DEFAULT 'aktif',
+  PRIMARY KEY (`id_produk`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE TABLE `detail_pesanan` (
   `id_detail` int(11) NOT NULL AUTO_INCREMENT,
@@ -101,15 +110,7 @@ CREATE TABLE `detail_pesanan` (
 -- Table structure for table `produk`
 --
 
-CREATE TABLE `produk` (
-  `id_produk` int(11) NOT NULL AUTO_INCREMENT,
-  `nama_produk` varchar(100) NOT NULL DEFAULT '',
-  `harga` int(11) NOT NULL DEFAULT 0,
-  `stok` int(11) NOT NULL DEFAULT 0,
-  `gambar` varchar(255) NOT NULL DEFAULT 'default.jpg',
-  `status` varchar(20) NOT NULL DEFAULT 'aktif',
-  PRIMARY KEY (`id_produk`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
 
 --
 -- Indexes for dumped tables
