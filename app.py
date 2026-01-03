@@ -8,10 +8,11 @@ app = Flask(__name__)
 app.secret_key = 'maju_jaya_key'
 
 # --- KONFIGURASI DATABASE ---
-app.config['MYSQL_HOST'] = 'localhost'
-app.config['MYSQL_USER'] = 'root'
-app.config['MYSQL_PASSWORD'] = ''
+app.config['MYSQL_HOST'] = 'tokobangunan.mysql.database.azure.com'
+app.config['MYSQL_USER'] = 'admintoko'
+app.config['MYSQL_PASSWORD'] = 'Tokobanguninaja04'
 app.config['MYSQL_DB'] = 'toko_bangunan'
+app.config['MYSQL_PORT'] = 3306
 app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
 
 # --- KONFIGURASI UPLOAD GAMBAR ---
@@ -434,4 +435,5 @@ def logout():
     return redirect(url_for('index'))
 
 if __name__ == '__main__':
+
     app.run(debug=True)
