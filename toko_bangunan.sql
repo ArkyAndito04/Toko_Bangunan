@@ -79,11 +79,6 @@ CREATE TABLE `pelanggan` (
 
 --
 -- Dumping data for table `pelanggan`
---
-
-INSERT INTO `pelanggan` (`id`, `nama_lengkap`, `nomor_hp`, `alamat`, `password`) VALUES
-(1, 'Arky Andito', '009933', 'Jalannin aja dulu', 'scrypt:32768:8:1$pJz7l2Vkbh4Q6oLV$5c08692965f3f654a613dd27c7d829c6778d23743a4acf5c10a88460ca6f0cac33f5fa1b5e7705925bde3873af095ca1e5b8dbd243f22845a51ce86904170d1c');
-
 -- --------------------------------------------------------
 
 --
