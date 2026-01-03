@@ -61,12 +61,14 @@ CREATE TABLE `detail_pesanan` (
 --
 
 CREATE TABLE `pelanggan` (
-  `id` int(11) NOT NULL,
+  `id` int(11) NOT NULL AUTO_INCREMENT,  -- Tambahkan AUTO_INCREMENT di sini
   `nama_lengkap` varchar(100) DEFAULT NULL,
   `nomor_hp` varchar(15) DEFAULT NULL,
   `alamat` text DEFAULT NULL,
-  `password` varchar(255) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+  `password` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`),                   -- Pastikan ini ada di sini
+  UNIQUE KEY `nomor_hp` (`nomor_hp`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Dumping data for table `pelanggan`
