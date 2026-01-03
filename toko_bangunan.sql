@@ -43,6 +43,17 @@ INSERT INTO `admin` (`id_admin`, `username`, `password`) VALUES
 (1, 'arky', 'scrypt:32768:8:1$dRQuTDi08SEttfT0$1acd311dd7ad6a55799e428fbc2611fd02ce1e220dd2504d1e00f7afbc7a53cbe77f9d8110a5f233cb33e63e55e92581968313ff773b865a5c454add908e9b97');
 
 -- --------------------------------------------------------
+CREATE TABLE `pelanggan` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `nama_l
+  engkap` varchar(100) NOT NULL DEFAULT '',
+  `nomor_hp` varchar(15) NOT NULL DEFAULT '',
+  `alamat` text NOT NULL DEFAULT '',
+  `password` varchar(255) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `nomor_hp` (`nomor_hp`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
 CREATE TABLE `pesanan` (
   `id_pesanan` int(11) NOT NULL AUTO_INCREMENT,
   `id_pelanggan` int(11) NOT NULL DEFAULT 0,
@@ -76,17 +87,6 @@ CREATE TABLE `detail_pesanan` (
 --
 -- Table structure for table `pelanggan`
 --
-
-CREATE TABLE `pelanggan` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `nama_l
-  engkap` varchar(100) NOT NULL DEFAULT '',
-  `nomor_hp` varchar(15) NOT NULL DEFAULT '',
-  `alamat` text NOT NULL DEFAULT '',
-  `password` varchar(255) NOT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `nomor_hp` (`nomor_hp`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `pelanggan`
