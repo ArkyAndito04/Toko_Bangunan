@@ -7,6 +7,7 @@ from datetime import timedelta
 
 app = Flask(__name__)
 app.secret_key = 'maju_jaya_key'
+app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1) # Tambahkan baris ini
 
 # --- PERBAIKAN KONFIGURASI SESSION UNTUK AZURE ---
 app.config.update(
@@ -442,4 +443,5 @@ def logout():
 
 if __name__ == '__main__':
     app.run(debug=True)
+
 
