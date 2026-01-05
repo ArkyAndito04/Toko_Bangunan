@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kelola Pelanggan - Maju Jaya</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --sidebar: #2c3e50;
+            --accent: #e67e22;
+            --bg: #f4f7f6;
+            --white: #ffffff;
+            --danger: #d63031;
+            --success: #27ae60;
+        }
+
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--bg); display: flex; overflow-x: hidden; }
+
+        /* --- SIDEBAR STYLE (SAMA DENGAN DASHBOARD) --- */
+        .sidebar {
+            width: 250px; background: var(--sidebar); height: 100vh;
+            color: white; padding: 20px; position: fixed; 
+            z-index: 1000; transition: all 0.3s ease; left: -450px;
+        }
+        .sidebar.active { left: 0; }
+        .sidebar h2 { color: var(--accent); margin-bottom: 30px; font-size: 1.5rem; text-align: center; }
+        .sidebar a {
+            display: block; color: #bdc3c7; text-decoration: none; padding: 12px 15px;
+            margin-bottom: 8px; border-radius: 8px; transition: 0.3s;
+        }
+        .sidebar a:hover, .sidebar a.active { background: #34495e; color: white; border-left: 4px solid var(--accent); }
+
+        .hamburger-menu {
+            font-size: 20px; cursor: pointer; background: var(--sidebar); color: white; 
+            padding: 12px 15px; border-radius: 8px; border: none; position: fixed; 
+            top: 20px; left: 20px; z-index: 1100; box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+        }
+
+        .sidebar-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0,0,0,0.4); z-index: 999; backdrop-filter: blur(2px);
+        }
+        .sidebar-overlay.active { display: block; }
+
+        /* --- MAIN CONTENT --- */
+        .main-content { flex: 1; padding: 100px 5%; transition: all 0.3s ease; width: 100%; box-sizing: border-box; }
+
+        .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        
+        h1 { margin-bottom: 5px; color: var(--sidebar); }
+        .breadcrumb { color: #7f8c8d; margin-bottom: 30px; font-size: 0.9rem; }
+
+        /* --- TABLE STYLE --- */
+        .table-responsive { width: 100%; overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; min-width: 800px; }
+        th { text-align: left; padding: 15px; background: #f8f9fa; color: #7f8c8d; font-size: 0.85rem; text-transform: uppercase; }
+        td { padding: 15px; border-bottom: 1px solid #f1f1f1; color: #333; font-size: 0.95rem; }
+
+        /* --- BUTTONS --- */
+        .btn-delete {
+            background: var(--danger); color: white; padding: 8px 12px; text-decoration: none;
+            border-radius: 6px; font-size: 0.8rem; font-weight: bold; transition: 0.3s;
+            border: none; cursor: pointer;
+        }
+        .btn-delete:hover { background: #b32d2d; transform: scale(1.05); }
+
+        .btn-history {
+            background: var(--sidebar); color: white; padding: 8px 12px; text-decoration: none;
+            border-radius: 6px; font-size: 0.8rem; font-weight: bold; margin-right: 5px;
+        }
+
+        /* --- ALERT FLASH --- */
+        .alert {
+            padding: 15px; background: #d4edda; color: #155724; 
+            border-radius: 8px; margin-bottom: 20px; border-left: 5px solid var(--success);
+        }
+    </style>
+</head>
+<body>
+
+    <button class="hamburger-menu" id="hamburgerBtn">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <div class="sidebar-overlay" id="overlay"></div>
+
+    <div class="sidebar" id="sidebarMenu">
+        <h2><i class="fas fa-hammer"></i> Maju Jaya</h2>
+        <a href="{{ url_for('admin') }}"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+        <a href="{{ url_for('kelola_produk') }}"><i class="fas fa-boxes"></i> Kelola Produk</a>
+        <a href="{{ url_for('kelola_pelanggan') }}" class="active"><i class="fas fa-users"></i> Kelola Pelanggan</a>
+        <a href="{{ url_for('logout') }}" style="margin-top: 50px;"><i class="fas fa-sign-out-alt"></i> Keluar</a>
+    </div>
+
+    <div class="main-content">
+        <h1>Kelola Pelanggan</h1>
+        <p class="breadcrumb">Admin / Manajemen Pelanggan</p>
+
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            {% for message in messages %}
+              <div class="alert"><i class="fas fa-check-circle"></i> {{ message }}</div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        <div class="card">
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>NAMA LENGKAP</th>
+                            <th>NOMOR HP</th>
+                            <th>ALAMAT</th>
+                            <th>AKSI</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for p in customers %}
+                        <tr>
+                            <td>#{{ p.id }}</td>
+                            <td><strong>{{ p.nama_lengkap }}</strong></td>
+                            <td>{{ p.nomor_hp }}</td>
+                            <td>{{ p.alamat }}</td>
+                            <td>
+                                <form action="{{ url_for('hapus_pelanggan', id=p.id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Apakah Anda yakin ingin menghapus pelanggan ini secara PERMANEN? Semua histori pesanan mereka mungkin akan terdampak.');">
+                                    <button type="submit" class="btn-delete">
+                                        <i class="fas fa-trash-alt"></i> Hapus Permanen
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const hamburgerBtn = document.getElementById('hamburgerBtn');
+        const sidebarMenu = document.getElementById('sidebarMenu');
+        const overlay = document.getElementById('overlay');
+
+        function toggleSidebar() {
+            sidebarMenu.classList.toggle('active');
+            overlay.classList.toggle('active');
+            const icon = hamburgerBtn.querySelector('i');
+            icon.classList.toggle('fa-bars');
+            icon.classList.toggle('fa-times');
+        }
+
+        hamburgerBtn.addEventListener('click', toggleSidebar);
+        overlay.addEventListener('click', toggleSidebar);
+    </script>
+</body>
+</html>
