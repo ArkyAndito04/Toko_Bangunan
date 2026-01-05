@@ -102,7 +102,24 @@ def daftar_pelanggan():
         except Exception as e:
             return f"Error: {str(e)}"
     return render_template('daftar_pelanggan.html')
-
+@app.route('/hapus_pelanggan/<int:id>', methods=['POST'])
+def hapus_pelanggan(id):
+    if 'admin_id' not in session:
+        return redirect(url_for('login_admin'))
+    
+    cur = mysql.connection.cursor()
+    # PENTING: Karena pelanggan punya relasi ke tabel pesanan, 
+    # lu harus hapus detail pesanan dan pesanan mereka dulu kalau gak pake ON DELETE CASCADE
+    try:
+        cur.execute("DELETE FROM pelanggan WHERE id = %s", (id,))
+        mysql.connection.commit()
+        flash('Pelanggan berhasil dihapus secara permanen!')
+    except Exception as e:
+        flash('Gagal menghapus pelanggan! Kemungkinan mereka masih memiliki data pesanan.')
+    
+    cur.close()
+    return redirect(url_for('kelola_pelanggan'))
+    
 @app.route('/checkout', methods=['POST'])
 def checkout():
     if not is_logged_in():
@@ -444,6 +461,7 @@ def logout():
 
 if __name__ == '__main__':
     app.run(debug=True)
+
 
 
 
