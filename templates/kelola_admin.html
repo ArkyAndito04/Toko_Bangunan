@@ -184,12 +184,10 @@
                 <tbody>
                     {% for a in admins %}
                     <tr>
-                        <td>#{{ a.id_admin }}</td> 
-                        
-                        <td>{{ a.username }}</td> 
-                        
+                        <td>#{{ a.id_admin }}</td>
+                        <td>{{ a.username }}</td>
                         <td>
-                            <button class="btn btn-update" onclick="editAdmin('{{ a.id_admin }}', '{{ a.username }}')">Edit</button>
+                            <button class="btn btn-update" onclick="editAdmin('{{ a.id_admin }}', '{{ a.username }}')" style="padding: 5px 10px;">Edit</button>
                             <a href="javascript:void(0)" class="btn btn-danger" onclick="openConfirmModal('{{ url_for('hapus_admin', id=a.id_admin) }}')">
                                 Hapus
                             </a>
@@ -270,6 +268,7 @@
 </body>
 
 </html>
+
 
 
 
