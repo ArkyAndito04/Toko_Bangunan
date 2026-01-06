@@ -183,19 +183,74 @@ def profil():
 
 @app.route('/profil/update', methods=['POST'])
 def update_profil():
-    if not is_logged_in(): return redirect(url_for('login_pelanggan'))
-    nama, hp, alamat = request.form.get('nama'), request.form.get('hp'), request.form.get('alamat')
-    pw_baru = request.form.get('password_baru')
+    if not is_logged_in():
+        return redirect(url_for('login_pelanggan'))
+
+    nama = request.form.get('nama')
+    hp = request.form.get('hp')
+    alamat = request.form.get('alamat')
+    password_baru = request.form.get('password_baru')
+    user_id = session['user_id']
+
     cur = mysql.connection.cursor()
-    if pw_baru and pw_baru.strip() != "":
-        cur.execute("UPDATE pelanggan SET nama_lengkap=%s, nomor_hp=%s, alamat=%s, password=%s WHERE id=%s", (nama, hp, alamat, generate_password_hash(pw_baru), session['user_id']))
-    else:
-        cur.execute("UPDATE pelanggan SET nama_lengkap=%s, nomor_hp=%s, alamat=%s WHERE id=%s", (nama, hp, alamat, session['user_id']))
-    mysql.connection.commit()
-    cur.close()
-    session['user_name'] = nama
-    flash("Profil diperbarui!", "success")
+    
+    try:
+        if password_baru and password_baru.strip() != "":
+            hashed_pw = generate_password_hash(password_baru)
+            cur.execute("""
+                UPDATE pelanggan 
+                SET nama_lengkap = %s, nomor_hp = %s, alamat = %s, password = %s 
+                WHERE id = %s
+            """, (nama, hp, alamat, hashed_pw, user_id))
+        else:
+            cur.execute("""
+                UPDATE pelanggan 
+                SET nama_lengkap = %s, nomor_hp = %s, alamat = %s 
+                WHERE id = %s
+            """, (nama, hp, alamat, user_id))
+        
+        mysql.connection.commit()
+        session['user_name'] = nama
+        flash("Profil berhasil diperbarui!", "success")
+    except Exception as e:
+        mysql.connection.rollback()
+        flash(f"Gagal memperbarui profil: {str(e)}", "danger")
+    finally:
+        cur.close()
+
     return redirect(url_for('profil'))
+
+@app.route('/lupa-password', methods=['GET', 'POST'])
+def lupa_password():
+    if request.method == 'POST':
+        query = request.form['search_query']
+        cur = mysql.connection.cursor()
+        cur.execute("SELECT id FROM pelanggan WHERE nama_lengkap = %s OR nomor_hp = %s", (query, query))
+        user = cur.fetchone()
+        cur.close()
+
+        if user:
+            return redirect(url_for('reset_password', user_id=user['id']))
+        else:
+            flash("Akun tidak ditemukan. Pastikan Nama atau Nomor HP benar.")
+            
+    return render_template('lupa_password.html')
+
+@app.route('/reset-password/<int:user_id>', methods=['GET', 'POST'])
+def reset_password(user_id):
+    if request.method == 'POST':
+        pw_baru = request.form['password']
+        hashed_pw = generate_password_hash(pw_baru)
+
+        cur = mysql.connection.cursor()
+        cur.execute("UPDATE pelanggan SET password = %s WHERE id = %s", (hashed_pw, user_id))
+        mysql.connection.commit()
+        cur.close()
+
+        flash("Password berhasil direset! Silakan login.")
+        return redirect(url_for('login_pelanggan'))
+
+    return render_template('reset_password.html', user_id=user_id)
 
 # --- AUTH ADMIN ---
 @app.route('/admin/login', methods=['GET', 'POST'])
@@ -215,7 +270,7 @@ def login_admin():
         else:
             flash("Username atau Password Admin salah!", "danger")
     return render_template('login_admin.html')
-
+    
 # --- DASHBOARD & MANAJEMEN ADMIN ---
 @app.route('/admin')
 def admin():
@@ -227,7 +282,47 @@ def admin():
     graph_data = cur.fetchall()
     cur.close()
     return render_template('admin.html', orders=orders, graph_data=graph_data)
+@app.route('/admin/detail_pesanan/<int:id>')
+def lihat_detail_admin(id):
+    if not is_admin():
+        return redirect(url_for('login_admin'))
+    
+    cur = mysql.connection.cursor()
+    cur.execute("""
+        SELECT p.*, c.nama_lengkap, c.nomor_hp, c.alamat 
+        FROM pesanan p 
+        JOIN pelanggan c ON p.id_pelanggan = c.id 
+        WHERE p.id_pesanan = %s
+    """, [id])
+    pesanan = cur.fetchone()
+    
+    cur.execute("""
+        SELECT d.*, pr.nama_produk 
+        FROM detail_pesanan d 
+        JOIN produk pr ON d.id_produk = pr.id_produk 
+        WHERE d.id_pesanan = %s
+    """, [id])
+    rincian = cur.fetchall()
+    cur.close()
+    return render_template('lihat_detail.html', pesanan=pesanan, rincian=rincian)
 
+@app.route('/get_order_count')
+def get_order_count():
+    if not is_admin():
+        return jsonify({'count': 0})
+
+    cur = mysql.connection.cursor()
+    cur.execute("SELECT COUNT(*) as total FROM pesanan WHERE notif_viewed = 0")
+    result = cur.fetchone()
+    count = result['total']
+    
+    if count > 0:
+        cur.execute("UPDATE pesanan SET notif_viewed = 1 WHERE notif_viewed = 0")
+        mysql.connection.commit()
+        
+    cur.close()
+    return jsonify({'count': count})
+    
 # --- PERBAIKAN: KELOLA ADMIN (TAMBAH, UPDATE, HAPUS) ---
 @app.route('/admin/kelola_admin')
 def kelola_admin():
@@ -287,6 +382,27 @@ def tambah_produk():
         cur.execute("INSERT INTO produk (nama_produk, harga, gambar, stok, status) VALUES (%s, %s, %s, %s, 'aktif')", (nama, harga, filename, stok))
         mysql.connection.commit()
         cur.close()
+    return redirect(url_for('kelola_produk'))
+
+@app.route('/admin/update_status/<int:id>')
+def update_status_selesai(id):
+    if not is_admin():
+        return redirect(url_for('login_admin'))
+    
+    cur = mysql.connection.cursor()
+    cur.execute("UPDATE pesanan SET status = 'Selesai' WHERE id_pesanan = %s", [id])
+    mysql.connection.commit()
+    cur.close()
+    return redirect(url_for('lihat_detail_admin', id=id))
+
+@app.route('/admin/update_stok/<int:id>', methods=['POST'])
+def update_stok(id):
+    if not is_admin(): return redirect(url_for('login_admin'))
+    stok_baru = request.form['stok_baru']
+    cur = mysql.connection.cursor()
+    cur.execute("UPDATE produk SET stok = %s WHERE id_produk = %s", (stok_baru, id))
+    mysql.connection.commit()
+    cur.close()
     return redirect(url_for('kelola_produk'))
 
 @app.route('/admin/hapus_produk/<int:id>')
